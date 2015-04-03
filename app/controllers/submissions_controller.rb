@@ -1,19 +1,7 @@
 class SubmissionsController < ApplicationController
 require "#{Rails.root}/app/helpers/localeze.rb" 
-def test
-@business_to_regester = {business_name: "Bowser Automotive",
-city: "Butler", state: "PA",postal_code: "16001", primary_phone: "7244822515",
-category: "AUTOMOBILE", operation_hours: "MF08001700HSS09001200H",keywords: "Air
-Conditioning Service,Air Filter Replacement,Auto Repair Shop,Belt and Hose
-Replacement,Brake Service,CV Axles,Chassis Lube,Complete Diagnostic
-Services,Computer Diagnostic Testing,Cooling System Flush,Diesel Service and
-Repair,Electrical,Exhaust System,Fuel Injection Service,Full Brake,Oil Change
-Service,Mechanic,Mufflers,Power Steering,Radiator Coolant Flush,Replace
-Lights,Suspension,Suspension and Shock Repair,Tire Rotation,Tire Sales &
-Service,Transmission Flush,Transmission Service,Vehicle Fluids,Vehicle
-Preventative Maintenance,Wheel Alignment,Wiper Blades" }
 
-
+def localeze
  api_client = LocalezeClient.new 
  returned = api_client.check(@business_to_regester) 
 
@@ -22,10 +10,19 @@ end
 
 
 
-
-def new
+def search_business
+ 
 end
 
+def test
+   name = params[:business_name].to_s
+   url = URI.escape("http://clientcloud.herokuapp.com/search?key=593264690503&q=#{name}")
+   response = open(url).read
+   parsed_business_name = Hash.new
+   parsed_business_name = JSON.parse(response)  
+   raise parsed_business_name.inspect
+
+end
 
 end
 

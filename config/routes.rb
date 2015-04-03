@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   
-  get 'submissions/new'  
-  get 'test', :to => 'submissions#test' 
+  get 'search', :to => 'submissions#search_business' 
+  get 'localeze', :to => 'submissions#test' 
+  get 'send', to: 'submissions#test'
 end
