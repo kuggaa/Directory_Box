@@ -7,5 +7,9 @@
 <br><br>
 </div>
 </form>
-  
+
+ <% @search_result.to_a.each do |e| %>
+ <%= link_to "Test", "/localeze/#{e["id"]}"%> 
+ <% end %>
+
 
