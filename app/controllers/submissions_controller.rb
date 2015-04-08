@@ -13,13 +13,13 @@ end
 
 
 def search_business
- 
+
 end
 
 def test
    require "open-uri"
    name = params[:business_name].to_s
-   url = URI.escape("http://clientcloud.herokuapp.com/search?key=593264690503&q=#{name}")
+   url = URI.escape("http://clientcloud.herokuapp.com/search?key=?&q=#{name}")
    response = open(url).read
    @search_result= JSON.parse(response)
    render "search_business"

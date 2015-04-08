@@ -9,7 +9,9 @@
 </form>
 
  <% @search_result.to_a.each do |e| %>
- <%= link_to "Test", "/localeze/#{e["id"]}"%> 
+ <%= link_to "select", "/localeze/#{e["id"]}"%> 
+ <%= "#{e["business_name"]}, #{e["city"]}, #{e["state"]}, #{e["phone"]}" %>
+ <br><br>
  <% end %>
 
 
