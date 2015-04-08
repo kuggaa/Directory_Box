@@ -1,17 +1,18 @@
 
-<h1> Test </h1>
-<form action="/send">
-<div align="center">
-<br><br>
-<input name="business_name" type="text" size="25" placeholder="Business Name">
-<br><br>
+<h1> DIRECTORY BOX</h1>
+<div align="center"> 
+submit your business to Localeze
 </div>
-</form>
+<br><br>
+
+<%= form_tag "/send" do %>
+  <div align="center">
+  <%= text_field_tag :business_name, nil, placeholder:"Business Name"%>
+</div>
+<%end %> 
 
  <% @search_result.to_a.each do |e| %>
- <%= link_to "select", "/localeze/#{e["id"]}"%> 
- <%= "#{e["business_name"]}, #{e["city"]}, #{e["state"]}, #{e["phone"]}" %>
+ <%= link_to "select", "/manage/#{e["id"]}"%> 
+ <%= "#{e["business_name"]}, #{e["city"]}, #{e["state"]}, #{e["phone"]}" %> 
  <br><br>
  <% end %>
-
-

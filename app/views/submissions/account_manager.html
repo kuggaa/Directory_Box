@@ -1,0 +1,21 @@
+
+<h1> OPTIONS </h1>
+<br><br><br><br>
+<%= form_tag "/submit" do %>
+	<%= hidden_field_tag :id, @client["id"] %>
+	<%= select_tag 'selection',options_for_select(@post_options, "Select") %>
+
+
+	<% ["business_detail", "contact_detail", "social_networking_detail"].each do |e| %>
+		<% @client[e].each do |k, v| %>
+		<div>
+			<label style='font-weight: bold'><%= k.split("_").map(&:capitalize).join(" ") %>:</label>
+			<span><%= v %></span>
+		</div>
+		<% end %>
+	<% end %>
+	
+	<%= submit_tag "send!" %>
+
+
+<% end %>
