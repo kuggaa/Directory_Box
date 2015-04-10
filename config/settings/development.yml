@@ -1,6 +1,6 @@
-localeze_password: QusU24yu 
-localeze_serviceid: ID_HERE
-localeze_username:  vuhoang@carcareconnect.com
+localeze_password: =Kyborw7
+localeze_serviceid: 5555555503
+localeze_username:  sandbox_radiusonline
 localeze_ids: {query: 1501, add: 1510, category: 2935, check: 3722, create: 3700}
 localeze_wsdl: http://webapp.targusinfo.com/ws-getdata/query.asmx?WSDL
 localeze_check_success: ["1", "2"]

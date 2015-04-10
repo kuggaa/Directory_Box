@@ -53,21 +53,22 @@ class LocalezeClient
   # The value that localeze gives us is very deep, this method
   # cleans that up a little in the implementation depending on the element
   def get_deep_value(query)
-    #raise "test".inspect
-    raise query.to_hash[:query_response][:response].inspect
-    # Hash.from_xml(query.to_hash[:query_response][:response][:result][:element][:value].to_s)['Response']
+     Hash.from_xml(query.to_hash[:query_response][:response][:result][:element][:value].to_s)['Response']
   end
 
   # This is a helper method to generate the giant dictionary you send as a message.
   # Rather than needing to supply this dictionary every time, all you need to supply is the Action Key,
   # the value to send, and the ElementId
+  
   def message(key, value, element)
+    # raise [Settings.localeze_username, Settings.localeze_password].inspect
     {origination: { username: Settings.localeze_username, password: Settings.localeze_password },
      serviceId: Settings.localeze_serviceid,
      transId: 1,
      elements: {id: Settings.localeze_ids[element]},
      serviceKeys: {serviceKey: { id: Settings.localeze_ids[key], value: value} }
     }
+
   end
 
   # This will wrap a record hash into the xml format required by localeze, also escape if needed.
