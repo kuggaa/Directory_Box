@@ -1,4 +1,5 @@
-localeze_password: =Kyborw7
+
+localeze_password: !RadiusOnline5
 localeze_serviceid: 5555555503
 localeze_username:  sandbox_radiusonline
 localeze_ids: {query: 1501, add: 1510, category: 2935, check: 3722, create: 3700}

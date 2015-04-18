@@ -19,9 +19,8 @@ require_dependency "#{Rails.root}/app/helpers/localeze.rb"
 
 
    def account_manager
-      @client = get_client_by_id(params[:id])
-    	@post_options = { "Check availability" => "3722", "Post listing" => "3700"}
-      dummy_test = @api_client.check(@client)
+      @client = listing    #get_client_by_id(params[:id])
+      dummy_test = @api_client.check(@client) 
       raise dummy_test.inspect
    end
 
@@ -48,6 +47,20 @@ require_dependency "#{Rails.root}/app/helpers/localeze.rb"
    def localeze_client
       @api_client = LocalezeClient.new 
    end
+
+
+   def listing
+        {Phone: "7708460972", 
+                   BusinessName: "Matt Yeager is Awesome", 
+                   Zip: "30213", 
+                   Categories: { 
+                     Category: [
+                      {Name: "Auto", Type: "PRIMARY"}
+                      ]
+                    }
+                  } 
+   end
+
 
 
 end 
