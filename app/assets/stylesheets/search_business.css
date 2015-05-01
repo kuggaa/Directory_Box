@@ -1,0 +1,53 @@
+#search_business_container #submission_container {
+	
+	
+	
+
+
+}
+
+
+#search_business_container #columns {
+	width: 100%;
+	min-width: 60rem;
+	text-align: center;
+	margin: auto;
+}
+
+#search_business_container #columns .column {
+	display: inline-block;
+	text-align: left;
+	width: calc(100% / 3);
+	margin-right: -4px;
+	vertical-align: top;
+	/*border: 1px solid red;*/
+}
+
+#search_business_container #columns .column .title {
+	font-size: 2rem;
+	font-weight: bold;
+	padding: 1rem;
+	text-decoration: underline;
+}
+
+#search_business_container #columns .first.column {
+	text-align: right;
+}
+
+#search_business_container #columns .second.column {
+	/*height: 4.2rem;*/
+}
+
+#search_business_container #columns .second.column input {
+	/*width: 100%;*/
+}
+
+#search_business_container #columns .third.column {
+	
+}
+
+#search_business_container #columns .first.column, #search_business_container #columns .third.column {
+	margin-top: 4.2rem;
+	padding: 1rem;
+	/*text-align: center;*/
+}

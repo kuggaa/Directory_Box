@@ -4,150 +4,152 @@ require 'cgi'
 # 'rails_config'
 # 'gyoku', '~> 1.0'#
 #
-class LocalezeClient
-  def initialize
-     @client = Savon.client(wsdl: Settings.localeze_wsdl, namespace: Settings.localeze_wsdl, pretty_print_xml: true)
+# require 'xml-simple'
+# require 'savon'
+
+#
+#  Used for interfacing the Localeze service
+#
+
+class Localeze
+
+  #
+  #  set credentials
+  #
+  USERNAME   = Rails.env == 'sandbox_radiusonline' ? 'sandbox_radiusonline' : 'sandbox_radiusonline'
+  PASSWORD   = Rails.env == '!RadiusOnline5' ? '!RadiusOnline5' : '!RadiusOnline5'
+  SERVICE_ID = Rails.env == '5555555503' ? '5555555503' : '5555555503'
+  WSDL_URL      = {wsdl: "http://soap.sandbox.neustarlocaleze.biz/ws-getdata/query.asmx?WSDL"}
+  SOAP_ENDPOINT = 'http://soap.sandbox.neustarlocaleze.biz/ws-getdata/query.asmx'
+  NAMESPACE     = 'http://neustarlocaleze.biz/WS-GetData'
+
+  #
+  # resource wrappers (wrapped around Localeze elements)
+  #
+
+  # element 2935 get categories
+  def get_categories
+    body = build_request(2935, 1501, "ACTIVEHEADINGS")
+    response = send_to_localeze(body)
+    xml_doc  = respond_with_hash(Nokogiri::XML(response.to_xml).text)
   end
 
-  # Check that a supplied listing is available to claim.
-  def check(listing)
-    value = record_to_xml(listing, true)
-    raise message(:add, value, :check).inspect
-    query = @client.call(:query, message: message(:add, value, :check))
-     # rescue Savon::SOAPFault => error
-     # raise error.http.inspect
-    result = get_deep_value(query)
-    check_successful?(result['ErrorCode']) ? true : result['ErrorMessage']
+  # element 3722 check availability
+  def check_availability(business = {})
+    xml = Builder::XmlMarkup.new
+    query = xml.tag!("BPMSPost",  'Edition' => "1.1") {
+      xml.tag!("Record") {
+        xml.tag!("Bowser Autio", business[:name])
+        xml.tag!("Autio",   business[:department])
+        xml.tag!("6675 rivertown rd",      business[:address])
+        xml.tag!("Fairburn",         business[:city])
+        xml.tag!("GA",        business[:state])
+        xml.tag!("30213",          business[:zip])
+        xml.tag!("7708460972",        business[:phone])
+      }
+    }
+    body = build_request(3722, 1510, query)
+    response = send_to_localeze(body)
+    xml_doc  = respond_with_hash(Nokogiri::XML(response.to_xml).text)
+    xml_doc['ErrorCode'] == '1' # success (returns true/false)
   end
 
-  # Create the supplied listing.
-  def create(listing)
-    value = record_to_xml(listing, true)
-    query = @client.call(:query, message: message(:add, value, :create))
-    result = get_deep_value(query)
-    status = create_successful?(result)
-    handle_status(status)
+  # element 3700 post business
+  def post_business(business, location)
+    xml = Builder::XmlMarkup.new
+    query = xml.tag!("BPMSPost",  'Edition' => "1.1") {
+      xml.tag!("Record") {
+        xml.tag!("Phone",        location.phone)
+        xml.tag!("BusinessName", location.location_name)
+        xml.tag!("Address",      location.address)
+        xml.tag!("City",         location.city)
+        xml.tag!("State",        location.state)
+        xml.tag!("Zip",          location.zip)
+        xml.tag!("URL",          location.website_url)
+        xml.tag!("TagLine",      location.special_offer)
+        #xml.tag!("LogoImage",    location.logo)
+        xml.tag!("Categories")  {
+          xml.tag!("Category") {
+            xml.tag!("Type",    "Primary")
+            xml.tag!("Name",    business.industry_primary)
+          }
+          if business.industry_alt_1.present?
+            xml.tag!("Category") {
+              xml.tag!("Type",    "Alt1")
+              xml.tag!("Name",    business.industry_alt_1)
+            }
+          end
+          if business.industry_alt_2.present?
+            xml.tag!("Category") {
+              xml.tag!("Type",    "Alt2")
+              xml.tag!("Name",    business.industry_alt_2)
+            }
+          end
+        }
+      }
+    }
+    body = build_request(3700, 1510, query)
+    response = send_to_localeze(body)
+    xml_doc  = respond_with_hash(Nokogiri::XML(response.to_xml).text)
+    xml_doc['Error'] == '0' # success (returns true/false)
   end
 
-  # Cache the categories
-  def categories
-    @_categories ||= categories!  # Memoizing
+
+  #
+  #  core methods (resource wrappers use these to connect to Localeze)
+  #
+
+  def send_to_localeze(xml)
+    client = Savon::Client.new(WSDL_URL)
+   # raise xml.inspect
+    response = client.call(:query, message: xml)
+
   end
 
-  private
-  # Cached methods
-  # make a call to localeze to get a list of all the categories available
-  def categories!
-    query = @client.call(:query, message: message(:query, 'ACTIVEHEADINGS', :category))  
-    headings = get_heading(query)
-    headings['ActiveHeadings']['Heading']
+  def respond_with_hash(response)
+    XmlSimple.xml_in(response, { 'ForceArray' => false, 'SuppressEmpty' => true })
   end
 
-  # Not sure why, but Localeze returns either an ErrorMessage or a Validator with a Resolution if there's an error.
-  # This will get the error code regardless of where it is in one of these locations
-  def get_errors(result)
-    if result.has_key?('ErrorMessage')
-        return result['ErrorMessage']
-    elsif result.has_key?('Validators')
-        return result['Validators']['Resolution']
+  def build_request(element_id, service_key, service_query)
+    xml = Builder::XmlMarkup.new
+    xml.tag!("soapenv:Envelope",  'xmlns:soapenv' => "http://schemas.xmlsoap.org/soap/envelope/",  'xmlns:ws' => "http://TARGUSinfo.com/WS-GetData") {
+      xml.tag!("soapenv:Body") {
+        xml.tag!("query") {
+
+          xml.tag!("origination") {
+            xml.tag!("username", USERNAME)
+            xml.tag!("password", PASSWORD)
+          }
+
+          xml.tag!("serviceId", SERVICE_ID)
+          xml.tag!("transId", Time.now.strftime("%Y%m%3N"))
+
+          xml.tag!("elements") {
+            xml.tag!("id", element_id)
+          }
+
+          xml.tag!("serviceKeys") {
+            xml.tag!("serviceKey") {
+              xml.tag!("id", service_key)
+              xml.tag!("value", service_query)
+            }
+          }
+
+        }
+      }
+    }
+  end
+
+  def service_info
+    client = Savon::Client.new do
+      wsdl.document = my_document
+      wsdl.endpoint = my_endpoint
+      wsdl.element_form_default = :unqualified
     end
+    # returns what we expect to interface the service
+    puts "Namespace: #{client.wsdl.namespace}"
+    puts "Endpoint: #{client.wsdl.endpoint}"
+    puts "Actions: #{client.wsdl.soap_actions}"
   end
 
-  # The value that localeze gives us is very deep, this method
-  # cleans that up a little in the implementation depending on the element
-  def get_deep_value(query)
-    Hash.from_xml(query.to_hash[:query_response][:response][:result][:element][:value].to_s)['Response']
-  end
-
-  # This is a helper method to generate the giant dictionary you send as a message.
-  # Rather than needing to supply this dictionary every time, all you need to supply is the Action Key,
-  # the value to send, and the ElementId
-  def message(key, value, element)
-
-    # xml_string_front= "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body>
-    #                    <query xmlns=\"http://TARGUSinfo.com/WS-GetData\">"
-    # xml_string_back = "</query></soap:Body></soap:Envelope>"
-    #   thisHash = {
-    #     origination: {
-    #       username: Settings.localeze_username,
-    #       password: Settings.localeze_password
-    #     },
-    #     serviceId: Settings.localeze_serviceid,
-    #     transId: 1,
-    #     elements: {
-    #       id: Settings.localeze_ids[element]
-    #     },
-    #     serviceKeys: {
-    #       serviceKey: {
-    #         id: Settings.localeze_ids[key],
-    #         value: value}
-    #       }
-    #    }
-    # xml_final_string = xml_string_front + thisHash.to_xml + xml_string_back
-
-    xml_string = "
-      <?xml version=\"1.0\" encoding=\"UTF-8\"?>
-      <soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">
-        <soap:Body>
-          <query xmlns=\"http://TARGUSinfo.com/WS-GetData\">
-            <origination>
-              <username>sandbox_radiusonline</username>
-              <password>!RadiusOnline5</password>
-            </origination>
-            <serviceId>5555555503</serviceId>
-            <transId>1</transId>
-            <elements>
-              <id>3722</id>
-            </elements>
-            <serviceKeys>
-              <serviceKey>
-                <id>1510</id>
-                <#{value}>&lt;BPMSPost Edition=\"1.1\"&gt;&lt;Record&gt;&lt;Phone&gt;7708460972&lt;/Phone&gt;&lt;BusinessName&gt;Matt Yeager is Awesome&lt;/BusinessName&gt;&lt;Zip&gt;30213&lt;/Zip&gt;&lt;Categories&gt;&lt;Category&gt;&lt;Name&gt;Auto&lt;/Name&gt;&lt;Type&gt;PRIMARY&lt;/Type&gt;&lt;/Category&gt;&lt;/Categories&gt;&lt;/Record&gt;&lt;/BPMSPost&gt;</value>
-              </serviceKey>
-            </serviceKeys>
-          </query>
-        </soap:Body>
-      </soap:Envelope>
-    "
-    # return xml with whitespace (other than spaces) removed
-    return xml_string.gsub(/[\t\n]/, "").strip
-  end
-
-  # This will wrap a record hash into the xml format required by localeze, also escape if needed.
-  # The reason it doesn't just use to_xml, is because we needed the "Edition" attribute.
-  def record_to_xml(record, escape = false)
-    bmps = {'BPMSPost' => {'Record' => record },  :attributes! => { 'BPMSPost' => { 'Edition' => '1.1' }}}
-    Gyoku.xml(bmps, {:key_converter => :none})
-  end
-
-  # Check that the error codes returned are Success codes.
-  def check_successful? code
-    Settings[:localeze_check_success].include? code
-  end
-
-  def create_successful? result
-     if Settings[:localeze_create_success].include? result['ErrorCode']
-        if result['ErrorMessage']
-            return [passes: false, message: result['ErrorMessage']]
-        elsif result['Validators'].is_a?(Array)
-            return [passes: true, message: result['Validators'].map{|v| v['Resolution']} * "\n"]
-        elsif result['Validators']
-            return [passes: true, message: result['Validators']['Resolution']]
-        end
-     else
-       return true
-     end
-  end
-
-  def handle_status(status)
-    if status.is_a?(Hash)
-        if status[:passes]
-            puts "Was submitted, but needs validation on site: #{status[:message]}"
-        else
-            puts "Was not submitted, Please fix: #{status[:message]}"
-        end
-    else
-        puts "Successful"
-    end
-  end
 end

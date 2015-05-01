@@ -50,7 +50,7 @@ group :development, :test do
   gem 'savon', '~> 2.0'
   gem 'rails_config'
   gem 'gyoku', '~> 1.0'
-
+  gem 'xml-simple'
 
 end
 
