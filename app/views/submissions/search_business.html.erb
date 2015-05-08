@@ -1,3 +1,7 @@
+<div class="nav_links">
+  <%= render "layouts/header" %>
+</div>
+
 <div id="search_business_container">
 	<h1> DIRECTORY BOX</h1>
 	<div align="center" style="color: rgb(200, 190, 0)"> 
@@ -11,8 +15,8 @@
 			<% if @search_result %>
 				<div class="title">Search Results</div>
 				<% @search_result.to_a.each do |e| %>
-					<%= link_to "select", "/manage/#{e["id"]}", class: "search_result_link", target: "_blank" %> 
-					<%= "#{e["business_name"]}, #{e["city"]}, #{e["state"]}, #{e["phone"]}" %> 
+					<% info_string = "#{e["business_name"]}, #{e["city"]}, #{e["state"]}, #{e["phone"]}" %>
+					<%= link_to info_string, "/manage/#{e["id"]}", class: "search_result_link", target: "_blank" %>  
 					<br><br>
 				<% end %>
 			<% end %>
@@ -30,7 +34,8 @@
 			<% @submissions.to_a.each do |s| %>
 				<div class="submission">
 					<% client = get_client_by_id2(s.client_id) %>
-					<span class="business_name"><%= client["business_detail"]["business_name"] %></span>
+					<% info_string = client["business_detail"]["business_name"]%>
+					<span class="business_name"><%= link_to info_string, "/manage/#{s["id"]}", class: "search_result_link", target: "_blank" %></span>
 					<span class="submission_date"><%= s.registration_date.strftime("%D @ %l:%M %p") %></span>
 				</div>
 			<% end %>	

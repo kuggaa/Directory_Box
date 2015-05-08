@@ -18,6 +18,27 @@
   box-sizing: border-box;
 }
 
+html {
+  font-size: 14px;
+  color: #444;
+  font-family: "PT Sans";
+  transition: font-size 0.4s;
+}
+
+
+@media (max-width: 900px) {
+  html {
+    font-size: 11px;
+  }
+}
+
+
+@media (max-width: 500px) {
+  html {
+    font-size: 9px;
+  }
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -26,13 +47,13 @@ body {
 }
 
 H1 {
-color: #7996EC;
-font-family: arial, sans-serif;
-font-size: 60px;
-font-weight: bold;
-margin-top: 60px;
-margin-bottom: 0px;
-text-align: center;
+  color: #7996EC;
+  font-family: arial, sans-serif;
+  font-size: 3.5rem;
+  font-weight: bold;
+  margin-top: 60px;
+  margin-bottom: 0px;
+  text-align: center;
 }
 
 #index_directory {
